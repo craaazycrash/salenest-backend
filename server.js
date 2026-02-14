@@ -5,24 +5,21 @@ require('dotenv').config();
 
 const app = express();
 
-// ✅ MIDDLEWARE
 app.use(cors());
 app.use(express.json());
 
-// ✅ MONGODB CONNECTION
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/salenest';
 
 mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-.then(() => console.log('✅ MongoDB Connected Successfully'))
+.then(() => console.log('MongoDB Connected Successfully'))
 .catch(err => {
-  console.error('❌ MongoDB Connection Error:', err);
+  console.error('MongoDB Connection Error:', err);
   process.exit(1);
 });
 
-// ✅ ITEM/PRODUCT SCHEMA
 const ItemSchema = new mongoose.Schema({
   itemImage: String,
   itemName: String,
@@ -31,7 +28,6 @@ const ItemSchema = new mongoose.Schema({
 
 const Item = mongoose.model('Item', ItemSchema);
 
-// ✅ SALES SCHEMA
 const SaleSchema = new mongoose.Schema({
   items: [{
     _id: String,
@@ -57,12 +53,10 @@ const SaleSchema = new mongoose.Schema({
 
 const Sale = mongoose.model('Sale', SaleSchema);
 
-// ✅ TEST ROUTE
 app.get('/', (req, res) => {
-  res.send('SaleNest Backend API is running! ✅');
+  res.send('SaleNest Backend API is running!');
 });
 
-// ✅ PRODUCT/ITEM ROUTES
 app.post('/pushing', async (req, res) => {
   try {
     const { itemImage, itemName, itemPrice } = req.body;
@@ -115,18 +109,14 @@ app.delete('/deleting/:id', async (req, res) => {
   }
 });
 
-// ✅ SALES ROUTES
-
-// CREATE NEW SALE
 app.post('/sales', async (req, res) => {
   try {
-    console.log('📥 Received sale request:', req.body);
+    console.log('Received sale request:', req.body);
 
     const { items, totalAmount, paymentMethod } = req.body;
 
-    // Validation
     if (!items || !Array.isArray(items) || items.length === 0) {
-      console.error('❌ Validation error: Cart is empty');
+      console.error('Validation error: Cart is empty');
       return res.status(400).json({ 
         error: 'Cart is empty',
         success: false 
@@ -134,7 +124,7 @@ app.post('/sales', async (req, res) => {
     }
 
     if (!totalAmount || totalAmount <= 0) {
-      console.error('❌ Validation error: Invalid total amount');
+      console.error('Validation error: Invalid total amount');
       return res.status(400).json({ 
         error: 'Invalid total amount',
         success: false 
@@ -142,14 +132,13 @@ app.post('/sales', async (req, res) => {
     }
 
     if (!paymentMethod || !['Cash', 'UPI'].includes(paymentMethod)) {
-      console.error('❌ Validation error: Invalid payment method');
+      console.error('Validation error: Invalid payment method');
       return res.status(400).json({ 
         error: 'Invalid payment method. Must be Cash or UPI',
         success: false 
       });
     }
 
-    // Create sale
     const newSale = new Sale({
       items,
       totalAmount,
@@ -159,7 +148,7 @@ app.post('/sales', async (req, res) => {
 
     const savedSale = await newSale.save();
     
-    console.log('✅ Sale saved successfully:', savedSale._id);
+    console.log('Sale saved successfully:', savedSale._id);
     
     res.status(201).json({
       success: true,
@@ -167,7 +156,7 @@ app.post('/sales', async (req, res) => {
       ...savedSale.toObject()
     });
   } catch (error) {
-    console.error('❌ Error creating sale:', error);
+    console.error('Error creating sale:', error);
     res.status(500).json({ 
       error: 'Failed to create sale',
       details: error.message,
@@ -176,19 +165,17 @@ app.post('/sales', async (req, res) => {
   }
 });
 
-// GET ALL SALES
 app.get('/sales', async (req, res) => {
   try {
     const sales = await Sale.find().sort({ date: -1 });
-    console.log(`📊 Fetched ${sales.length} sales`);
+    console.log(`Fetched ${sales.length} sales`);
     res.status(200).json(sales);
   } catch (error) {
-    console.error('❌ Error fetching sales:', error);
+    console.error('Error fetching sales:', error);
     res.status(500).json({ error: 'Failed to fetch sales' });
   }
 });
 
-// GET TODAY'S SALES
 app.get('/sales/today', async (req, res) => {
   try {
     const startOfDay = new Date();
@@ -209,7 +196,7 @@ app.get('/sales/today', async (req, res) => {
       0
     );
 
-    console.log(`📊 Today's sales: ${todaySales.length} transactions, ₹${totalRevenue} revenue`);
+    console.log(`Today's sales: ${todaySales.length} transactions, ₹${totalRevenue} revenue`);
 
     res.status(200).json({
       sales: todaySales,
@@ -217,12 +204,11 @@ app.get('/sales/today', async (req, res) => {
       count: todaySales.length
     });
   } catch (error) {
-    console.error('❌ Error fetching today sales:', error);
+    console.error('Error fetching today sales:', error);
     res.status(500).json({ error: 'Failed to fetch today sales' });
   }
 });
 
-// GET SALE BY ID
 app.get('/sales/:id', async (req, res) => {
   try {
     const sale = await Sale.findById(req.params.id);
@@ -233,33 +219,28 @@ app.get('/sales/:id', async (req, res) => {
 
     res.status(200).json(sale);
   } catch (error) {
-    console.error('❌ Error fetching sale:', error);
+    console.error('Error fetching sale:', error);
     res.status(500).json({ error: 'Failed to fetch sale' });
   }
 });
 
-// ✅ ERROR HANDLING MIDDLEWARE
 app.use((err, req, res, next) => {
-  console.error('❌ Unhandled error:', err);
+  console.error('Unhandled error:', err);
   res.status(500).json({ 
     error: 'Internal server error',
     message: err.message 
   });
 });
 
-// ✅ 404 HANDLER
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// ✅ START SERVER
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🚀 SaleNest Backend Server Started!');
-  console.log(`📍 Server: http://localhost:${PORT}`);
-  console.log(`📦 Database: ${MONGO_URI}`);
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('SaleNest Backend Server Started!');
+  console.log(`Server: http://localhost:${PORT}`);
+  console.log(`Database: ${MONGO_URI}`);
 });
 
 module.exports = app;

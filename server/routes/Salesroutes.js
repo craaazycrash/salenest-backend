@@ -2,12 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Sale = require('../models/Sale');
 
-// ✅ CREATE NEW SALE
 router.post('/sales', async (req, res) => {
   try {
     const { items, totalAmount, paymentMethod } = req.body;
 
-    // Validation
     if (!items || items.length === 0) {
       return res.status(400).json({ error: 'Cart is empty' });
     }
@@ -20,7 +18,6 @@ router.post('/sales', async (req, res) => {
       return res.status(400).json({ error: 'Invalid payment method' });
     }
 
-    // Create sale
     const newSale = new Sale({
       items,
       totalAmount,
@@ -37,10 +34,9 @@ router.post('/sales', async (req, res) => {
   }
 });
 
-// ✅ GET ALL SALES
 router.get('/sales', async (req, res) => {
   try {
-    const sales = await Sale.find().sort({ date: -1 }); // Most recent first
+    const sales = await Sale.find().sort({ date: -1 });
     res.status(200).json(sales);
   } catch (error) {
     console.error('Error fetching sales:', error);
@@ -48,7 +44,6 @@ router.get('/sales', async (req, res) => {
   }
 });
 
-// ✅ GET TODAY'S SALES
 router.get('/sales/today', async (req, res) => {
   try {
     const startOfDay = new Date();
@@ -80,7 +75,6 @@ router.get('/sales/today', async (req, res) => {
   }
 });
 
-// ✅ GET SALE BY ID
 router.get('/sales/:id', async (req, res) => {
   try {
     const sale = await Sale.findById(req.params.id);
@@ -96,7 +90,6 @@ router.get('/sales/:id', async (req, res) => {
   }
 });
 
-// ✅ GET SALES BY DATE RANGE (Optional - for advanced filtering)
 router.get('/sales/range/:startDate/:endDate', async (req, res) => {
   try {
     const { startDate, endDate } = req.params;
