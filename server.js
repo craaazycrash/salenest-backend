@@ -6,19 +6,17 @@ require('dotenv').config();
 const app = express();
 
 app.use(cors({
-  origin: "https://salenest.netlify.app",
+  origin: "http://localhost:5173",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 
 app.use(express.json());
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/salenest';
+const MONGO_URI = process.env.MONGO_URI;
 
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(MONGO_URI)
+
 .then(() => console.log('MongoDB Connected Successfully'))
 .catch(err => {
   console.error('MongoDB Connection Error:', err);
@@ -245,7 +243,6 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log('SaleNest Backend Server Started!');
   console.log(`Server: http://localhost:${PORT}`);
-  console.log(`Database: ${MONGO_URI}`);
 });
 
 module.exports = app;
